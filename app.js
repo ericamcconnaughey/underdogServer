@@ -6,6 +6,27 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const aboutRouter = require('./routes/aboutRouter');
+const adoptRouter = require('./routes/adoptRouter');
+const contactRouter = require('./routes/contactRouter');
+const favoritesRouter = require('./routes/favoritesRouter');
+const matchRouter = require('./routes/matchRouter');
+const volunteerRouter = require('./routes/volunteerRouter');
+
+const mongoose = require('mongoose');
+
+//use this port and database for url path
+const url = 'mongodb://localhost:27017/underdog';
+const connect = mongoose.connect(url, {
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+connect.then(() => console.log('Connected correctly to server'),
+  err => console.log(err)
+);
 
 var app = express();
 
@@ -21,6 +42,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/about', aboutRouter);
+app.use('/adopt', adoptRouter);
+app.use('/contact', contactRouter);
+app.use('/favorites', favoritesRouter);
+app.use('/match', matchRouter);
+app.use('/volunteer', volunteerRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

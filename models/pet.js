@@ -9,7 +9,6 @@ const petSchema = new Schema({
   },
   image: {
     type: String,
-    required: true,
   },
   featured: {
     type: Boolean

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Pet = require('../models/pet');
+const User = require('../models/user');
 
 const matchRouter = express.Router();
 

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Pet = require('../models/pet');
 const User = require('../models/user');
+const authenticate = require('../authenticate');
 
 const matchRouter = express.Router();
 
@@ -17,7 +18,7 @@ matchRouter.route('/')
   })
   .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
   //needs to be restricted to admin
   Pet.create(req.body)
   .then(pet => {
@@ -32,7 +33,7 @@ matchRouter.route('/')
   res.statusCode = 403;
   res.end('PUT operation not supported on /match');
 })
-.delete((req, res) => {
+.delete(authenticate.verifyUser, (req, res) => {
   //needs to be restricted to admin
   Pet.deleteMany()
   .then(response => {
@@ -57,7 +58,7 @@ matchRouter.route('/:petId')
   res.statusCode = 403;
   res.end(`POST operation not supported on /match ${req.params.petId}`);
 })
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
   //needs to be restricted to admin
   Pet.findByIdAndUpdate(req.params.petId, {
     $set: req.body
@@ -69,7 +70,7 @@ matchRouter.route('/:petId')
   })  
   .catch(err => next(err));
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser,  (req, res, next) => {
   //needs to be restricted to admin
   Pet.findByIdAndDelete(req.params.petId)
   .then(response => {

@@ -1,9 +1,12 @@
+//Import Middleware
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const passport = require('passport');
+const config = require('./config');
 
+//Import Routers
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 // const aboutRouter = require('./routes/aboutRouter');
@@ -16,7 +19,7 @@ const matchRouter = require('./routes/matchRouter');
 const mongoose = require('mongoose');
 
 //use this port and database for url path
-const url = 'mongodb://localhost:27017/underdog';
+const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
   useCreateIndex: true,
   useFindAndModify: false,
@@ -34,20 +37,25 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//Use Middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 // app.use('/about', aboutRouter);
 app.use('/adopt', adoptRouter);
 // app.use('/contact', contactRouter);
+// app.use('/volunteer', volunteerRouter);
+
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/favorites', favoritesRouter);
 app.use('/match', matchRouter);
-// app.use('/volunteer', volunteerRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

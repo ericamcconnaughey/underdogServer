@@ -10,16 +10,6 @@ favoritesRouter.use(bodyParser.json());
 
 favoritesRouter.route('/')
 .get(authenticate.verifyUser, (req, res, next) => {
-  //IF NOT REGISTERED/LOGGED IN
-  if (!req.user._id) {
-    err = new Error(`You are not logged in. 
-    Please login or register to save and see your 
-    favorite adoptable pets.`);
-    err.status = 403;
-    //redirect to login link??
-    return next(err);
-  } else {
-  //IF LOGGED IN
   User.findById(req.user._id)
   .then(user => {
     res.statusCode = 200;
@@ -27,7 +17,6 @@ favoritesRouter.route('/')
     res.json(user.favorites);
   })
   .catch(err => next(err));
-  } 
 })
 .post((req, res) => {
   res.statusCode = 403;
@@ -40,7 +29,7 @@ favoritesRouter.route('/')
 .delete(authenticate.verifyUser, (req, res, next) => {
   //ONLY USER IS AUTHORIZED TO DELETE THEIR OWN FAVORITES
   User.findByIdAndUpdate(req.user._id, {
-    $set: { favorites: '' } //replaces string of favorites with empty string
+    $set: { favorites: [] } //replaces favorites with empty array
   }, { new: true }) //returns updated doc
   .then(response => {
     res.statusCode = 200;
@@ -50,4 +39,54 @@ favoritesRouter.route('/')
   .catch(err => next(err));
 });
 
+
+favoritesRouter.route('/:petId')
+.get(authenticate.verifyUser, (req, res, next) => {
+  Pet.findById(req.params.petId)
+  .then(pet => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json(pet);
+  })
+  .catch(err => next(err));
+})
+.post((req, res) => {
+  res.statusCode = 403;
+  res.end(`POST operation not supported on /favorites/${req.params.petId}`);
+})
+.put((req, res) => {
+  res.statusCode = 403;
+  res.end(`PUT operation not supported on /favorites/${req.params.petId}`);
+})
+.delete(authenticate.verifyUser, (req, res, next) => {
+  //ONLY USER IS AUTHORIZED TO DELETE THEIR OWN FAVORITES
+  User.findById(req.user._id)
+  .then(user => {
+    let favorite = user.favorites.find(favorite => {
+      return favorite.favoritePet == req.params.petId
+    });
+    user.favorites.id(favorite._id).remove();
+    user.save()
+  .then(user => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json(user);
+  })
+  })
+  .catch(err => next(err));
+});
+
 module.exports = favoritesRouter;
+
+
+//OLD WAY TO DELETE A SINGLE FAVORITE (NOT WORKING)
+// User.findByIdAndUpdate(req.user._id, {
+//   $pull: { favorites: req.params.petId } //removes pet from favorites
+// }, { new: true }) //returns updated doc
+// .then(response => {
+//   res.statusCode = 200;
+//   res.setHeader('Content-Type', 'application/json');
+//   res.json(response);
+// })
+// .catch(err => next(err));
+// });

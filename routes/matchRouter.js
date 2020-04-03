@@ -18,8 +18,7 @@ matchRouter.route('/')
   })
   .catch(err => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
-  //needs to be restricted to admin
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   Pet.create(req.body)
   .then(pet => {
     console.log('Pet created', pet);
@@ -33,8 +32,7 @@ matchRouter.route('/')
   res.statusCode = 403;
   res.end('PUT operation not supported on /match');
 })
-.delete(authenticate.verifyUser, (req, res) => {
-  //needs to be restricted to admin
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   Pet.deleteMany()
   .then(response => {
     res.statusCode = 200;
@@ -43,6 +41,8 @@ matchRouter.route('/')
   })
   .catch(err => next(err));
 });
+
+
 
 matchRouter.route('/:petId')
 .get((req, res, next) => {
@@ -53,9 +53,8 @@ matchRouter.route('/:petId')
     res.json(pet);
   })
   .catch(err => next(err));
-})
+}) //ADD PET TO FAVORITES
 .put(authenticate.verifyUser, (req, res, next) => {
-  //ADD PET TO FAVORITES
   User.findById(req.user._id)
   .then(user => {
     user.favorites.push({favoritePet: req.params.petId});
@@ -70,20 +69,11 @@ matchRouter.route('/:petId')
   })
   .catch(err => next(err));
 })
-// .put(authenticate.verifyUser, (req, res, next) => {
-//   //UPDATE PET PROFILE
-//   //needs to be restricted to admin
-//   Pet.findByIdAndUpdate(req.params.petId, {
-//     $set: req.body
-//   }, { new: true })
-//   .then(pet => {
-//     res.statusCode = 200;
-//     res.setHeader('Content-Type', 'application/json');
-//     res.json(pet);
-//   })  
-//   .catch(err => next(err));
-// })
-.delete(authenticate.verifyUser,  (req, res, next) => {
+.post((req, res) => {
+  res.statusCode = 403;
+  res.end(`POST operation not supported on /match/${req.params.petId}`);
+})
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   //needs to be restricted to admin
   Pet.findByIdAndDelete(req.params.petId)
   .then(response => {

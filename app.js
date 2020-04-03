@@ -15,6 +15,7 @@ const adoptRouter = require('./routes/adoptRouter');
 const favoritesRouter = require('./routes/favoritesRouter');
 const matchRouter = require('./routes/matchRouter');
 // const volunteerRouter = require('./routes/volunteerRouter');
+const uploadRouter = require('./routes/uploadRouter');
 
 const mongoose = require('mongoose');
 
@@ -67,6 +68,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/favorites', favoritesRouter);
 app.use('/match', matchRouter);
+app.use('/imageUpload', uploadRouter);
 
 
 // catch 404 and forward to error handler

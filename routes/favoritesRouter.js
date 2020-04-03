@@ -3,13 +3,15 @@ const bodyParser = require('body-parser');
 const Pet = require('../models/pet');
 const User = require('../models/user');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 const favoritesRouter = express.Router();
 
 favoritesRouter.use(bodyParser.json());
 
 favoritesRouter.route('/')
-.get(authenticate.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authenticate.verifyUser, (req, res, next) => {
   User.findById(req.user._id)
   .then(user => {
     res.statusCode = 200;
@@ -18,15 +20,15 @@ favoritesRouter.route('/')
   })
   .catch(err => next(err));
 })
-.post((req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end('POST operation not supported on /favorites');
 })
-.put((req, res) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end('PUT operation not supported on /favorites');
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   //ONLY USER IS AUTHORIZED TO DELETE THEIR OWN FAVORITES
   User.findByIdAndUpdate(req.user._id, {
     $set: { favorites: [] } //replaces favorites with empty array
@@ -41,7 +43,8 @@ favoritesRouter.route('/')
 
 
 favoritesRouter.route('/:petId')
-.get(authenticate.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authenticate.verifyUser, (req, res, next) => {
   Pet.findById(req.params.petId)
   .then(pet => {
     res.statusCode = 200;
@@ -50,15 +53,15 @@ favoritesRouter.route('/:petId')
   })
   .catch(err => next(err));
 })
-.post((req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end(`POST operation not supported on /favorites/${req.params.petId}`);
 })
-.put((req, res) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end(`PUT operation not supported on /favorites/${req.params.petId}`);
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   //ONLY USER IS AUTHORIZED TO DELETE THEIR OWN FAVORITES
   User.findById(req.user._id)
   .then(user => {

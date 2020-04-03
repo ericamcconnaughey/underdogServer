@@ -3,13 +3,15 @@ const bodyParser = require('body-parser');
 const Pet = require('../models/pet');
 const User = require('../models/user');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 const matchRouter = express.Router();
 
 matchRouter.use(bodyParser.json());
 
 matchRouter.route('/')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
   Pet.find()
   .then(pets => {
     res.statusCode = 200;
@@ -18,7 +20,7 @@ matchRouter.route('/')
   })
   .catch(err => next(err));
 })
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   Pet.create(req.body)
   .then(pet => {
     console.log('Pet created', pet);
@@ -28,11 +30,11 @@ matchRouter.route('/')
   })
   .catch(err => next(err));
 })
-.put((req, res) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end('PUT operation not supported on /match');
 })
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   Pet.deleteMany()
   .then(response => {
     res.statusCode = 200;
@@ -45,7 +47,8 @@ matchRouter.route('/')
 
 
 matchRouter.route('/:petId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
   Pet.findById(req.params.petId)
   .then(pet => {
     res.statusCode = 200;
@@ -54,7 +57,7 @@ matchRouter.route('/:petId')
   })
   .catch(err => next(err));
 }) //ADD PET TO FAVORITES
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   User.findById(req.user._id)
   .then(user => {
     user.favorites.push({favoritePet: req.params.petId});
@@ -69,11 +72,11 @@ matchRouter.route('/:petId')
   })
   .catch(err => next(err));
 })
-.post((req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
   res.statusCode = 403;
   res.end(`POST operation not supported on /match/${req.params.petId}`);
 })
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   //needs to be restricted to admin
   Pet.findByIdAndDelete(req.params.petId)
   .then(response => {
